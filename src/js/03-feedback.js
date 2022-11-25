@@ -1,33 +1,47 @@
 import throttle from 'lodash.throttle';
-const refs = {
-formRef: document.querySelector('.feedback-form '), 
-emailRef:document.querySelector('.feedback-form input'),
-textareaRef:document.querySelector('.feedback-form textarea'),
-}
-refs.formRef.addEventListener('input', throttle(onInput,500))
-refs.formRef.addEventListener('submit', onSubmit)
-populateTextatera() 
+const FEEDBACK_KEY = 'feedback-form-state';
 
-function onInput(event) {
-  const textEmailTextatera = {}
-  textEmailTextatera.email = refs.emailRef.value
-  textEmailTextatera.textarea=refs.textareaRef.value
-  localStorage.setItem("feedback-form-state", JSON.stringify(textEmailTextatera))
- 
- }
-function onSubmit(event) {
-  event.preventDefault()
-  event.currentTarget.reset() 
-  localStorage.removeItem("feedback-form-state")
-  
-}
-function populateTextatera() {
-const saveMassage = localStorage.getItem("feedback-form-state")
-  if (saveMassage) {
-let valueInTexT=JSON.parse(saveMassage)
-    refs.textareaRef.value = valueInTexT.textarea
-    refs.emailRef.value = valueInTexT.email
-   console.log(valueInTexT)
+const feedbackForm = document.querySelector('.feedback-form');
+let feedbackFormData = {
+  email: '',
+  message: '',
+};
+
+const renderFromLocalStorage = () => {
+  if (!JSON.parse(localStorage.getItem(FEEDBACK_KEY))) {
+    return;
   }
- 
- }
+
+  feedbackFormData = JSON.parse(localStorage.getItem(FEEDBACK_KEY));
+
+  feedbackForm.elements.email.value = feedbackFormData.email;
+  feedbackForm.elements.message.value = feedbackFormData.message;
+};
+
+const onInputForm = () => {
+  feedbackFormData.email = feedbackForm.elements.email.value;
+  feedbackFormData.message = feedbackForm.elements.message.value;
+
+  localStorage.setItem(FEEDBACK_KEY, JSON.stringify(feedbackFormData));
+};
+
+const onSubmitForm = event => {
+  event.preventDefault();
+
+  if (
+    !feedbackForm.elements.email.value ||
+    !feedbackForm.elements.message.value
+  ) {
+    alert('Все поля должны быть заполнены!');
+    return;
+  }
+
+  feedbackForm.reset();
+  localStorage.removeItem(FEEDBACK_KEY);
+  console.log(feedbackFormData);
+};
+
+renderFromLocalStorage();
+
+feedbackForm.addEventListener('submit', onSubmitForm);
+feedbackForm.addEventListener('input', throttle(onInputForm, 500));
